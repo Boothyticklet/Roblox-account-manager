@@ -11,7 +11,7 @@ from selenium.webdriver.firefox.options import Options
 from cryptography.fernet import Fernet
 
 
-CURRENT_VERSION = "V1.0.0"
+CURRENT_VERSION = "V1.0.3"
 repo_base_url = "https://raw.githubusercontent.com/Boothyticklet/Roblox-account-manager/main"
 version_file_url = f"{repo_base_url}/Version"
 script_file_url = f"{repo_base_url}/Manager.py"
