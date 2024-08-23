@@ -4,6 +4,7 @@ import os
 import time
 import urllib.request
 import zipfile
+import requests  
 from tkinter import Tk, Button, Label, StringVar, OptionMenu, messagebox, Frame
 from tkinter.simpledialog import askstring
 from selenium import webdriver
@@ -16,12 +17,54 @@ def install_packages():
     try:
         import selenium
         import cryptography
+        import requests
     except ImportError:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "selenium", "cryptography"])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "selenium", "cryptography", "requests"])
         import selenium
         import cryptography
+        import requests
 
 install_packages()
+
+
+current_version = "v1.0.0"  
+repo_base_url = "https://raw.githubusercontent.com/Boothyticklet/Roblox-account-manager/main"
+version_file_url = f"{repo_base_url}/Version"  
+script_file_url = f"{repo_base_url}/Manager.py"  
+
+def check_for_updates():
+    try:
+        
+        response = requests.get(version_file_url)
+        response.raise_for_status()
+        latest_version = response.text.strip()
+
+        
+        if latest_version != current_version:
+            update_script()
+        else:
+            print("You are using the latest version.")
+    except Exception as e:
+        print(f"Failed to check for updates: {e}")
+
+def update_script():
+    try:
+        
+        response = requests.get(script_file_url)
+        response.raise_for_status()
+
+        
+        with open(sys.argv[0], "wb") as script_file:
+            script_file.write(response.content)
+
+        messagebox.showinfo("Update", "The script has been updated to the latest version. Please restart it.")
+        sys.exit()
+    except Exception as e:
+        messagebox.showerror("Update Failed", f"Failed to update the script: {e}")
+
+
+check_for_updates()
+
 
 geckodriver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.35.0/geckodriver-v0.35.0-win32.zip"
 geckodriver_zip = "geckodriver.zip"
@@ -31,11 +74,10 @@ firefox_binary_path = r'C:\Program Files\Mozilla Firefox\firefox.exe'
 cookie_directory = os.getcwd()
 key_file = os.path.join(requirements_folder, "secret.key")
 
-
 def load_key():
     if not os.path.exists(requirements_folder):
         os.makedirs(requirements_folder)
-
+    
     if os.path.exists(key_file):
         return open(key_file, "rb").read()
     else:
@@ -44,40 +86,34 @@ def load_key():
             key_file_out.write(key)
         return key
 
-
 encryption_key = load_key()
 cipher = Fernet(encryption_key)
-
 
 def encrypt(data):
     return cipher.encrypt(data.encode()).decode()
 
-
 def decrypt(data):
     return cipher.decrypt(data.encode()).decode()
-
 
 def download_geckodriver():
     if not os.path.exists(requirements_folder):
         os.makedirs(requirements_folder)
-
+    
     if not os.path.exists(geckodriver_path):
         urllib.request.urlretrieve(geckodriver_url, os.path.join(requirements_folder, geckodriver_zip))
         with zipfile.ZipFile(os.path.join(requirements_folder, geckodriver_zip), 'r') as zip_ref:
             zip_ref.extractall(requirements_folder)
         os.remove(os.path.join(requirements_folder, geckodriver_zip))
 
-
 def get_cookie_files():
     return [f for f in os.listdir(cookie_directory) if f.endswith(".txt")]
 
-
 def update_cookie_dropdown():
     cookie_files = get_cookie_files()
-
+    
     if not cookie_files:
         cookie_files = ["No cookies found"]
-
+    
     selected_cookie.set(cookie_files[0])
 
     menu = cookie_menu['menu']
@@ -85,30 +121,28 @@ def update_cookie_dropdown():
     for cookie_file in cookie_files:
         menu.add_command(label=cookie_file, command=lambda value=cookie_file: selected_cookie.set(value))
 
-
 def login_with_cookie():
     cookie_file = selected_cookie.get()
     if not cookie_file or cookie_file == "No cookies found":
         return
-
+    
     with open(os.path.join(cookie_directory, cookie_file), "r") as file:
         encrypted_cookie = file.read().strip()
         roblosecurity_cookie = decrypt(encrypted_cookie)
-
+    
     firefox_options = Options()
     firefox_options.binary_location = firefox_binary_path
     firefox_options.add_argument("--private")
-
+    
     service = Service(geckodriver_path)
-
+    
     driver = webdriver.Firefox(service=service, options=firefox_options)
     driver.get("https://www.roblox.com")
     driver.add_cookie({"name": ".ROBLOSECURITY", "value": roblosecurity_cookie, "domain": "roblox.com"})
     driver.get("https://www.roblox.com/home")
-
+    
     messagebox.showinfo("Info", "The browser will remain open. Press OK to close.")
     driver.quit()
-
 
 def create_new_cookie_file():
     file_name = askstring("Input", "Enter a name for the account:")
@@ -120,80 +154,75 @@ def create_new_cookie_file():
     firefox_options = Options()
     firefox_options.binary_location = firefox_binary_path
     firefox_options.add_argument("--private")
-
+    
     service = Service(geckodriver_path)
-
+    
     driver = webdriver.Firefox(service=service, options=firefox_options)
     driver.get("https://www.roblox.com/login")
-
-    while "home" not in driver.current_url:
+    
+    # Wait until the user reaches the home page, then get the cookie
+    while driver.current_url != "https://www.roblox.com/home":
         time.sleep(1)
-
+    
     cookie = driver.get_cookie('.ROBLOSECURITY')
-
+    
     if cookie:
         encrypted_cookie = encrypt(cookie['value'])
         with open(os.path.join(cookie_directory, file_name), "w") as file:
             file.write(encrypted_cookie)
-
+        
         update_cookie_dropdown()
-
+    
     driver.quit()
-
 
 def join_vip():
     cookie_file = selected_cookie.get()
     if not cookie_file or cookie_file == "No cookies found":
         return
-
-    url = askstring("VIP Server", "Enter the VIP server URL:")
-    if not url:
+    
+    vip_url = askstring("Input", "Enter the VIP server URL:")
+    if not vip_url:
         return
-
+    
     with open(os.path.join(cookie_directory, cookie_file), "r") as file:
         encrypted_cookie = file.read().strip()
         roblosecurity_cookie = decrypt(encrypted_cookie)
-
+    
     firefox_options = Options()
     firefox_options.binary_location = firefox_binary_path
     firefox_options.add_argument("--private")
-
+    
     service = Service(geckodriver_path)
-
+    
     driver = webdriver.Firefox(service=service, options=firefox_options)
-    driver.get("https://www.roblox.com")
+    driver.get(vip_url)
     driver.add_cookie({"name": ".ROBLOSECURITY", "value": roblosecurity_cookie, "domain": "roblox.com"})
-    driver.get(url)
-
+    driver.get(vip_url)
+    
     messagebox.showinfo("Info", "The browser will remain open. Press OK to close.")
     driver.quit()
 
-
-def delete_cookie_file():
+def delete_account():
     cookie_file = selected_cookie.get()
     if not cookie_file or cookie_file == "No cookies found":
         return
-
-    confirm = messagebox.askyesno("Delete", f"Are you sure you want to delete {cookie_file}?")
+    
+    confirm = messagebox.askyesno("Confirm", f"Are you sure you want to delete {cookie_file}?")
     if confirm:
         os.remove(os.path.join(cookie_directory, cookie_file))
         update_cookie_dropdown()
-
 
 download_geckodriver()
 
 root = Tk()
 root.title("Roblox Cookie Manager")
-root.configure(bg="#2C3E50")
+root.geometry("300x250")
 
-frame = Frame(root, bg="#34495E", padx=10, pady=10)
-frame.pack(padx=10, pady=10)
+frame = Frame(root, bg="#2c3e50")
+frame.place(relwidth=1, relheight=1)
 
-title_label = Label(frame, text="Roblox Cookie Manager", font=("Arial", 16, "bold"), bg="#34495E", fg="white")
-title_label.grid(row=0, column=0, columnspan=3, pady=10)
-
-label = Label(frame, text="Select an account:", font=("Arial", 12), bg="#34495E", fg="white")
-label.grid(row=1, column=0, pady=5)
+label = Label(frame, text="Select an account:", bg="#2c3e50", fg="white", font=("Helvetica", 12))
+label.pack(pady=5)
 
 selected_cookie = StringVar(root)
 cookie_files = get_cookie_files()
@@ -204,18 +233,20 @@ else:
     selected_cookie.set(cookie_files[0])
 
 cookie_menu = OptionMenu(frame, selected_cookie, *cookie_files)
-cookie_menu.grid(row=1, column=1, pady=5)
+cookie_menu.config(bg="#34495e", fg="white", font=("Helvetica", 10))
+cookie_menu["menu"].config(bg="#34495e", fg="white")
+cookie_menu.pack(pady=10)
 
-login_button = Button(frame, text="Login", font=("Arial", 12), bg="#2980B9", fg="white", command=login_with_cookie)
-login_button.grid(row=2, column=0, padx=5, pady=10)
+login_button = Button(frame, text="Login", command=login_with_cookie, bg="#3498db", fg="white", font=("Helvetica", 10))
+login_button.pack(pady=5)
 
-create_button = Button(frame, text="Create an account", font=("Arial", 12), bg="#27AE60", fg="white", command=create_new_cookie_file)
-create_button.grid(row=2, column=1, padx=5, pady=10)
+vip_button = Button(frame, text="Join VIP", command=join_vip, bg="#2ecc71", fg="white", font=("Helvetica", 10))
+vip_button.pack(pady=5)
 
-delete_button = Button(frame, text="Log out", font=("Arial", 12), bg="#E74C3C", fg="white", command=delete_cookie_file)
-delete_button.grid(row=2, column=2, padx=5, pady=10)
+create_button = Button(frame, text="Create an account", command=create_new_cookie_file, bg="#95a5a6", fg="white", font=("Helvetica", 10))
+create_button.pack(pady=5)
 
-vip_button = Button(frame, text="Join VIP", font=("Arial", 14), bg="#2ECC71", fg="white", command=join_vip)
-vip_button.grid(row=3, column=0, columnspan=3, pady=10)
+logout_button = Button(frame, text="Log out", command=delete_account, bg="#e74c3c", fg="white", font=("Helvetica", 10))
+logout_button.pack(pady=5)
 
 root.mainloop()
