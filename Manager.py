@@ -12,6 +12,7 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from cryptography.fernet import Fernet
 
+print("Hey the update worked!")
 
 def install_packages():
     try:
@@ -27,8 +28,8 @@ def install_packages():
 install_packages()
 
 
-current_version = "v1.0.0"  
-repo_base_url = "https://raw.githubusercontent.com/Boothyticklet/Roblox-account-manager/main"
+current_version = "V1.0.1" 
+repo_base_url = "https://raw.githubusercontent.com/Boothyticklet/Roblox-account-manager/main"  
 version_file_url = f"{repo_base_url}/Version"  
 script_file_url = f"{repo_base_url}/Manager.py"  
 
@@ -40,14 +41,14 @@ def check_for_updates():
         latest_version = response.text.strip()
 
         
-        if latest_version != current_version:
-            update_script()
+        if latest_version.lower() != current_version.lower():
+            update_script(latest_version)
         else:
             print("You are using the latest version.")
     except Exception as e:
         print(f"Failed to check for updates: {e}")
 
-def update_script():
+def update_script(latest_version):
     try:
         
         response = requests.get(script_file_url)
@@ -57,7 +58,7 @@ def update_script():
         with open(sys.argv[0], "wb") as script_file:
             script_file.write(response.content)
 
-        messagebox.showinfo("Update", "The script has been updated to the latest version. Please restart it.")
+        messagebox.showinfo("Update", f"The script has been updated to version {latest_version}. Please restart it.")
         sys.exit()
     except Exception as e:
         messagebox.showerror("Update Failed", f"Failed to update the script: {e}")
