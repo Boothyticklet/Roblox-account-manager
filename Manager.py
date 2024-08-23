@@ -12,7 +12,7 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from cryptography.fernet import Fernet
 
-print("Hey the update worked!")
+print("Hi epic im stalking you.")
 
 def install_packages():
     try:
