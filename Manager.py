@@ -28,7 +28,7 @@ def install_packages():
 install_packages()
 
 
-current_version = "V1.0.2" 
+current_version = "V1.0.5" 
 repo_base_url = "https://raw.githubusercontent.com/Boothyticklet/Roblox-account-manager/main"  
 version_file_url = f"{repo_base_url}/Version"  
 script_file_url = f"{repo_base_url}/Manager.py"  
