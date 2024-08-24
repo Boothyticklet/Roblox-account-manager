@@ -12,7 +12,7 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from cryptography.fernet import Fernet
 
-print("Hi epic im stalking you.")
+print("Hey the update worked!")
 
 def install_packages():
     try:
@@ -28,7 +28,7 @@ def install_packages():
 install_packages()
 
 
-current_version = "V1.0.2" 
+current_version = "V1.0.1" 
 repo_base_url = "https://raw.githubusercontent.com/Boothyticklet/Roblox-account-manager/main"  
 version_file_url = f"{repo_base_url}/Version"  
 script_file_url = f"{repo_base_url}/Manager.py"  
