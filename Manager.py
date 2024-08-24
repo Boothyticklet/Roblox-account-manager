@@ -4,13 +4,15 @@ import os
 import time
 import urllib.request
 import zipfile
-import requests
-from tkinter import Tk, Button, Label, StringVar, OptionMenu, messagebox, Frame, Toplevel
+import requests  
+from tkinter import Tk, Button, Label, StringVar, OptionMenu, messagebox, Frame
 from tkinter.simpledialog import askstring
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from cryptography.fernet import Fernet
+
+print("The mess up was fixed?")
 
 def install_packages():
     try:
@@ -25,16 +27,20 @@ def install_packages():
 
 install_packages()
 
-current_version = "V1.0.3"
-repo_base_url = "https://raw.githubusercontent.com/Boothyticklet/Roblox-account-manager/main"
-version_file_url = f"{repo_base_url}/Version"
-script_file_url = f"{repo_base_url}/Manager.py"
+
+current_version = "V1.0.2" 
+repo_base_url = "https://raw.githubusercontent.com/Boothyticklet/Roblox-account-manager/main"  
+version_file_url = f"{repo_base_url}/Version"  
+script_file_url = f"{repo_base_url}/Manager.py"  
 
 def check_for_updates():
     try:
+        
         response = requests.get(version_file_url)
         response.raise_for_status()
         latest_version = response.text.strip()
+
+        
         if latest_version.lower() != current_version.lower():
             update_script(latest_version)
         else:
@@ -44,16 +50,22 @@ def check_for_updates():
 
 def update_script(latest_version):
     try:
+        
         response = requests.get(script_file_url)
         response.raise_for_status()
+
+        
         with open(sys.argv[0], "wb") as script_file:
             script_file.write(response.content)
+
         messagebox.showinfo("Update", f"The script has been updated to version {latest_version}. Please restart it.")
         sys.exit()
     except Exception as e:
         messagebox.showerror("Update Failed", f"Failed to update the script: {e}")
 
+
 check_for_updates()
+
 
 geckodriver_url = "https://github.com/mozilla/geckodriver/releases/download/v0.35.0/geckodriver-v0.35.0-win32.zip"
 geckodriver_zip = "geckodriver.zip"
@@ -110,7 +122,8 @@ def update_cookie_dropdown():
     for cookie_file in cookie_files:
         menu.add_command(label=cookie_file, command=lambda value=cookie_file: selected_cookie.set(value))
 
-def login_with_cookie(cookie_file):
+def login_with_cookie():
+    cookie_file = selected_cookie.get()
     if not cookie_file or cookie_file == "No cookies found":
         return
     
@@ -128,6 +141,9 @@ def login_with_cookie(cookie_file):
     driver.get("https://www.roblox.com")
     driver.add_cookie({"name": ".ROBLOSECURITY", "value": roblosecurity_cookie, "domain": "roblox.com"})
     driver.get("https://www.roblox.com/home")
+    
+    messagebox.showinfo("Info", "The browser will remain open. Press OK to close.")
+    driver.quit()
 
 def create_new_cookie_file():
     file_name = askstring("Input", "Enter a name for the account:")
@@ -145,6 +161,7 @@ def create_new_cookie_file():
     driver = webdriver.Firefox(service=service, options=firefox_options)
     driver.get("https://www.roblox.com/login")
     
+    # Wait until the user reaches the home page, then get the cookie
     while driver.current_url != "https://www.roblox.com/home":
         time.sleep(1)
     
@@ -159,38 +176,32 @@ def create_new_cookie_file():
     
     driver.quit()
 
-def launch_two_accounts():
-    second_window = Toplevel(root)
-    second_window.title("Select second account")
-
-    second_selected_cookie = StringVar(second_window)
-    cookie_files = get_cookie_files()
-    if cookie_files:
-        second_selected_cookie.set(cookie_files[0])
-    else:
-        cookie_files = ["No cookies found"]
-        second_selected_cookie.set(cookie_files[0])
-
-    second_label = Label(second_window, text="Select the second account:")
-    second_label.pack(pady=5)
-
-    second_cookie_menu = OptionMenu(second_window, second_selected_cookie, *cookie_files)
-    second_cookie_menu.pack(pady=10)
-
-    def start_accounts():
-        cookie_file_1 = selected_cookie.get()
-        cookie_file_2 = second_selected_cookie.get()
-
-        if cookie_file_1 == cookie_file_2:
-            messagebox.showerror("Error", "Cannot launch the same account twice.")
-            return
-
-        login_with_cookie(cookie_file_1)
-        login_with_cookie(cookie_file_2)
-        second_window.destroy()
-
-    second_button = Button(second_window, text="Launch", command=start_accounts)
-    second_button.pack(pady=10)
+def join_vip():
+    cookie_file = selected_cookie.get()
+    if not cookie_file or cookie_file == "No cookies found":
+        return
+    
+    vip_url = askstring("Input", "Enter the VIP server URL:")
+    if not vip_url:
+        return
+    
+    with open(os.path.join(cookie_directory, cookie_file), "r") as file:
+        encrypted_cookie = file.read().strip()
+        roblosecurity_cookie = decrypt(encrypted_cookie)
+    
+    firefox_options = Options()
+    firefox_options.binary_location = firefox_binary_path
+    firefox_options.add_argument("--private")
+    
+    service = Service(geckodriver_path)
+    
+    driver = webdriver.Firefox(service=service, options=firefox_options)
+    driver.get(vip_url)
+    driver.add_cookie({"name": ".ROBLOSECURITY", "value": roblosecurity_cookie, "domain": "roblox.com"})
+    driver.get(vip_url)
+    
+    messagebox.showinfo("Info", "The browser will remain open. Press OK to close.")
+    driver.quit()
 
 def delete_account():
     cookie_file = selected_cookie.get()
@@ -227,11 +238,11 @@ cookie_menu.config(bg="#34495e", fg="white", font=("Helvetica", 10))
 cookie_menu["menu"].config(bg="#34495e", fg="white")
 cookie_menu.pack(pady=10)
 
-login_button = Button(frame, text="Login", command=lambda: login_with_cookie(selected_cookie.get()), bg="#3498db", fg="white", font=("Helvetica", 10))
+login_button = Button(frame, text="Login", command=login_with_cookie, bg="#3498db", fg="white", font=("Helvetica", 10))
 login_button.pack(pady=5)
 
-launch_two_button = Button(frame, text="Launch Two Accounts", command=launch_two_accounts, bg="#2ecc71", fg="white", font=("Helvetica", 10))
-launch_two_button.pack(pady=5)
+vip_button = Button(frame, text="Join VIP", command=join_vip, bg="#2ecc71", fg="white", font=("Helvetica", 10))
+vip_button.pack(pady=5)
 
 create_button = Button(frame, text="Create an account", command=create_new_cookie_file, bg="#95a5a6", fg="white", font=("Helvetica", 10))
 create_button.pack(pady=5)
