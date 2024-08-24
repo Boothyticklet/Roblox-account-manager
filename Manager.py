@@ -10,6 +10,7 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from cryptography.fernet import Fernet
 
+print("This is a test")
 
 CURRENT_VERSION = "V1.0.3"
 repo_base_url = "https://raw.githubusercontent.com/Boothyticklet/Roblox-account-manager/main"
