@@ -103,7 +103,7 @@ def update_cookie_dropdown():
     cookie_files = get_cookie_files()
     
     if not cookie_files:
-        cookie_files = ["No cookies found"]
+        cookie_files = ["No Accounts found"]
     
     selected_cookie.set(cookie_files[0])
 
@@ -170,7 +170,7 @@ def launch_two_accounts():
     if cookie_files:
         second_selected_cookie.set(cookie_files[0])
     else:
-        cookie_files = ["No cookies found"]
+        cookie_files = ["No Accounts found"]
         second_selected_cookie.set(cookie_files[0])
 
     second_label = Label(second_window, text="Select  second account:")
@@ -207,7 +207,7 @@ def delete_account():
 download_geckodriver()
 
 root = Tk()
-root.title("Roblox Cookie Manager")
+root.title("Roblox Account Manager")
 root.geometry("300x250")
 
 frame = Frame(root, bg="#2c3e50")
@@ -221,7 +221,7 @@ cookie_files = get_cookie_files()
 if cookie_files:
     selected_cookie.set(cookie_files[0])
 else:
-    cookie_files = ["No cookies found"]
+    cookie_files = ["No Accounts found"]
     selected_cookie.set(cookie_files[0])
 
 cookie_menu = OptionMenu(frame, selected_cookie, *cookie_files)
