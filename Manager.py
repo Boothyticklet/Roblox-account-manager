@@ -12,6 +12,8 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from cryptography.fernet import Fernet
 
+print("Downgraded to a older version becouse i messed something up. Sorry!")
+
 def install_packages():
     try:
         import selenium
@@ -38,7 +40,7 @@ def check_for_updates():
         if latest_version.lower() != current_version.lower():
             update_script(latest_version)
         else:
-            print("You are using the latest version.")
+            print("You are using  latest version.")
     except Exception as e:
         print(f"Failed to check for updates: {e}")
 
@@ -130,7 +132,7 @@ def login_with_cookie(cookie_file):
     driver.get("https://www.roblox.com/home")
 
 def create_new_cookie_file():
-    file_name = askstring("Input", "Enter a name for the account:")
+    file_name = askstring("Input", "Enter a name for  account:")
     if not file_name:
         return
 
@@ -171,7 +173,7 @@ def launch_two_accounts():
         cookie_files = ["No cookies found"]
         second_selected_cookie.set(cookie_files[0])
 
-    second_label = Label(second_window, text="Select the second account:")
+    second_label = Label(second_window, text="Select  second account:")
     second_label.pack(pady=5)
 
     second_cookie_menu = OptionMenu(second_window, second_selected_cookie, *cookie_files)
@@ -182,7 +184,7 @@ def launch_two_accounts():
         cookie_file_2 = second_selected_cookie.get()
 
         if cookie_file_1 == cookie_file_2:
-            messagebox.showerror("Error", "Cannot launch the same account twice.")
+            messagebox.showerror("Error", "Cannot launch  same account twice.")
             return
 
         login_with_cookie(cookie_file_1)
